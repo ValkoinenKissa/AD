@@ -1,2 +1,2 @@
 # AD
-Examples for designing, developing, and maintaining access to data from a program through connectors and techniques to relational and non-relational databases.
+A collection of examples showing how to build efficient and maintainable data access layers — from SQL to NoSQL — using modern connectors, APIs, and integration techniques.
