@@ -18,7 +18,7 @@ public class Controller {
 
 
     public void loadProductsIntoDB() {
-        if (!pdi.checkIfDbIsEmpty()) {
+        if (pdi.checkIfDbIsEmpty()) {
             pdi.populateDatabase();
         } else {
             System.out.println("La base de datos ya ha sido poblada, borra los registros de la tabla productos para " +
@@ -28,10 +28,10 @@ public class Controller {
 
     public void createEmployee() {
 
-        System.out.print("Nombre: ");
+        System.out.println("Nombre: ");
         String nombre = scanner.nextLine();
 
-        System.out.print("Puesto: ");
+        System.out.println("Puesto: ");
         String puesto = scanner.nextLine();
 
         Employee e = new Employee(nombre, puesto);
@@ -42,7 +42,7 @@ public class Controller {
     }
 
     public void createOrder() {
-        System.out.print("ID del producto: ");
+        System.out.println("ID del producto: ");
         int idProducto = scanner.nextInt();
 
         if (!pdi.existsProduct(idProducto)) {
@@ -50,7 +50,7 @@ public class Controller {
             return;
         }
 
-        System.out.print("ID del empleado: ");
+        System.out.println("ID del empleado: ");
         int idEmpleado = scanner.nextInt();
 
         if (!pdi.existsEmployee(idEmpleado)) {

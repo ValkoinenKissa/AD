@@ -82,16 +82,22 @@ public class ProductDAOImp implements productDAO {
 
     @Override
     public boolean checkIfDbIsEmpty() {
-        boolean affectedRowsCounter = false;
-        String query = String.format("SELECT * FROM %s;", DBScheme.TAB_PRODUCTS_NAME);
+        String query = String.format("SELECT COUNT(*) AS total FROM %s;", DBScheme.TAB_PRODUCTS_NAME);
         try {
-            Statement statement = connection.prepareStatement(query);
-            affectedRowsCounter = statement.execute(query);
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+
+            if (resultSet.next()){
+                int count = resultSet.getInt("total");
+                if (count == 0){
+                    return true;
+                }
+            }
         } catch (SQLException e) {
             System.out.println("Error al ejecutar la consulta: " + e.getMessage());
         }
 
-        return affectedRowsCounter;
+        return false;
     }
 
     @Override
@@ -153,15 +159,28 @@ public class ProductDAOImp implements productDAO {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(query);
 
-            while (resultSet.next()) {
+            if (!resultSet.next()) {
+                System.out.println("Esta tabla de la BD actualmente no tiene registros");
+            } else {
                 System.out.println(
-                        resultSet.getInt(DBScheme.PRODUCT_ID) + " | " +
-                                resultSet.getString(DBScheme.PRODUCT_NAME) + " | " +
-                                resultSet.getString(DBScheme.PRODUCT_DESCRIPTION) + " | " +
-                                resultSet.getInt(DBScheme.PRODUCT_STOCK) + " | " +
-                                resultSet.getDouble(DBScheme.PRODUCT_PRICE)
+                        DBScheme.PRODUCT_ID  + " | " +
+                                DBScheme.PRODUCT_NAME  + " | " +
+                                DBScheme.PRODUCT_DESCRIPTION  + " | " +
+                                DBScheme.PRODUCT_STOCK  + " | " +
+                                DBScheme.PRODUCT_PRICE
                 );
+                System.out.println("---------------------------------------------------------------");
+                while (resultSet.next()) {
+                    System.out.println(
+                            resultSet.getInt(DBScheme.PRODUCT_ID) + " | " +
+                                    resultSet.getString(DBScheme.PRODUCT_NAME) + " | " +
+                                    resultSet.getString(DBScheme.PRODUCT_DESCRIPTION) + " | " +
+                                    resultSet.getInt(DBScheme.PRODUCT_STOCK) + " | " +
+                                    resultSet.getDouble(DBScheme.PRODUCT_PRICE)
+                    );
+                }
             }
+
         } catch (SQLException e) {
             System.out.println("Error al ejecutar la consulta: " + e.getMessage());
         }
@@ -183,15 +202,28 @@ public class ProductDAOImp implements productDAO {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(query);
 
-            while (resultSet.next()) {
+            if (!resultSet.next()) {
+                System.out.println("Esta tabla de la BD actualmente no tiene registros");
+
+            } else {
                 System.out.println(
-                        resultSet.getInt(DBScheme.ID_PRODUCTS_FAV) + " | " +
-                                resultSet.getInt(DBScheme.PRODUCT_ID) + " | " +
-                                resultSet.getString(DBScheme.PRODUCT_NAME) + " | " +
-                                resultSet.getString(DBScheme.PRODUCT_DESCRIPTION) + " | " +
-                                resultSet.getInt(DBScheme.PRODUCT_STOCK) + " | " +
-                                resultSet.getDouble(DBScheme.PRODUCT_PRICE)
+                        DBScheme.PRODUCT_ID  + " | " +
+                                DBScheme.PRODUCT_NAME  + " | " +
+                                DBScheme.PRODUCT_DESCRIPTION  + " | " +
+                                DBScheme.PRODUCT_STOCK  + " | " +
+                                DBScheme.PRODUCT_PRICE
                 );
+                System.out.println("---------------------------------------------------------------");
+                while (resultSet.next()) {
+                    System.out.println(
+                            resultSet.getInt(DBScheme.ID_PRODUCTS_FAV) + " | " +
+                                    resultSet.getInt(DBScheme.PRODUCT_ID) + " | " +
+                                    resultSet.getString(DBScheme.PRODUCT_NAME) + " | " +
+                                    resultSet.getString(DBScheme.PRODUCT_DESCRIPTION) + " | " +
+                                    resultSet.getInt(DBScheme.PRODUCT_STOCK) + " | " +
+                                    resultSet.getDouble(DBScheme.PRODUCT_PRICE)
+                    );
+                }
             }
         } catch (SQLException e) {
             System.out.println("Error al ejecutar la consulta: " + e.getMessage());
@@ -217,7 +249,14 @@ public class ProductDAOImp implements productDAO {
             Statement statement = connection.createStatement();
             int affectedRows = statement.executeUpdate(query);
 
-            System.out.println(affectedRows + " productos insertados como favoritos");
+            if (affectedRows == 0) {
+                System.out.println("Error al ejecutar la consulta, " +
+                        "es probable que la tabla productos no tenga resgistros");
+            } else {
+                System.out.println(affectedRows + " productos insertados como favoritos");
+
+            }
+
         } catch (SQLException e) {
             System.out.println("Error al ejecutar la consulta: " + e.getMessage());
         }
