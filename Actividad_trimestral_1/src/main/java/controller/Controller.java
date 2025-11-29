@@ -1,36 +1,22 @@
 package controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import model.ProductJSON;
-import model.ProductResponse;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-
+import dao.ProductDAOImp;
 public class Controller {
+    ProductDAOImp pdi = new ProductDAOImp();
 
-
-    public void jsonFetch() {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            URI uri = new URI("https://dummyjson.com/products");
-            URL url = uri.toURL();
-            try (InputStream is = url.openStream()) {
-                ProductResponse response = mapper.readValue(is, ProductResponse.class);
-                for (ProductJSON item : response.getProducts()) {
-                    System.out.println(item);
-                }
-            }
-
-        } catch (URISyntaxException | MalformedURLException e) {
-            System.out.println("Error al parsear la URL");
-
-        } catch (IOException e) {
-            System.out.println("Error al consultar la URL");
+    public void loadProductsIntoDB() {
+        if (!pdi.checkIfDbIsEmpty()) {
+            pdi.populateDatabase();
+        } else {
+            System.out.println("La base de datos ya ha sido poblada, borra los registros de la tabla productos para " +
+                    "ejecutar esta opcion");
         }
+    }
+
+    public void createEmployee() {
+    }
+
+    public void createOrder() {
+
     }
 }

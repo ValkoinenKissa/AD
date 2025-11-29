@@ -1,8 +1,4 @@
 import controller.Controller;
-import database.DBConnection;
-
-import java.sql.Connection;
-import java.sql.SQLException;
 
 /*
 Se pide la realización de una aplicación que:
@@ -21,14 +17,8 @@ o	Todos los productos favoritos con sus datos
 public class Main {
     public static void main(String[] args) {
         Controller c = new Controller();
-        c.jsonFetch();
 
-        Connection connection = DBConnection.getConnection();
-        try {
-            System.out.println(connection.getCatalog());
-        } catch (SQLException e) {
-            System.out.println("Error en sentencia");
-        }
+        c.loadProductsIntoDB();
 
     }
 }
