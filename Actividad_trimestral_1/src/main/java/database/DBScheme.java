@@ -9,4 +9,9 @@ public interface DBScheme {
     String PRODUCT_STOCK = "cantidad";
     String PRODUCT_PRICE = "precio";
 
+    //Join prov_fav productos
+
+    String ID_PRODUCTS_FAV = "id_producto_fav";
+
+
 }

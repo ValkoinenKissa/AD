@@ -2,29 +2,29 @@ package dao;
 /*
 Agregar todos los productos que están ubicados en el siguiente JSON dentro de la tabla productos:
 https://dummyjson.com/products ✅
-•	Agregar una serie empleados y pedidos mediante statement. Tener en cuenta que los pedidos tienen una fk sobre la tabla productos
+•	Agregar una serie empleados y pedidos mediante statement. Tener en cuenta que los pedidos tienen una fk sobre la tabla productos ✅
 •	Muestra por consola mediante la ejecución de querys – statement:
-o	Todos los productos
-o	Todos los productos favoritos con sus datos
-•	Muestra por consola todos los productos de la base de datos que tengan un precio inferior a 600€
-•	Inserta en la tabla productos_fav aquellos productos que tengan un valor superior a 1000€
+o	Todos los productos ✅
+o	Todos los productos favoritos con sus datos ✅
+•	Muestra por consola todos los productos de la base de datos que tengan un precio inferior a 600€ ✅
+•	Inserta en la tabla productos_fav aquellos productos que tengan un valor superior a 1000€ ✅
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import database.DBConnection;
 import database.DBScheme;
+import model.Employee;
+import model.Order;
 import model.ProductJSON;
 import model.ProductResponse;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class ProductDAOImp implements productDAO {
     private final Connection connection;
@@ -63,10 +63,10 @@ public class ProductDAOImp implements productDAO {
                     }
                 }
 
-                if (affectedRowsCounter > 0){
+                if (affectedRowsCounter > 0) {
                     System.out.println("Base de datos poblada con exito");
                     System.out.println("Filas afectadas: " + affectedRowsCounter);
-                } else{
+                } else {
                     System.out.println("Error al poblar la base de datos, posiblemente esta ya contenga registros");
                     System.out.println("Filas afectadas: " + affectedRowsCounter);
                 }
@@ -88,39 +88,139 @@ public class ProductDAOImp implements productDAO {
             Statement statement = connection.prepareStatement(query);
             affectedRowsCounter = statement.execute(query);
         } catch (SQLException e) {
-            System.out.println("Error al ejecutar la consulta");
+            System.out.println("Error al ejecutar la consulta: " + e.getMessage());
         }
 
         return affectedRowsCounter;
     }
 
     @Override
-    public void addEmployee() {
+    public void addEmployee(Employee e) {
+        String sql = "INSERT INTO empleados (nombre, puesto) VALUES (?, ?)";
 
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, e.getName());
+            ps.setString(2, e.getPosition());
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.println("Error al ejecutar la consulta: " + ex.getMessage());
+        }
     }
 
     @Override
-    public void addOrder() {
+    public void addOrder(Order o) {
+        String sql = "INSERT INTO pedidos (id_producto, id_empleado, cantidad, fecha) VALUES (?, ?, ?, ?)";
 
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, o.getProductID());
+            ps.setInt(2, o.getEmployeeID());
+            ps.setInt(3, o.getProductQuantity());
+            ps.setDate(4, Date.valueOf(o.getDate()));
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.println("Error al ejecutar la consulta: " + ex.getMessage());
+        }
+    }
+
+
+    @Override
+    public boolean existsEmployee(int id) {
+        String sql = "SELECT id FROM empleados WHERE id = ?";
+
+        return searchCoincidences(id, sql);
+    }
+
+    @Override
+    public boolean existsProduct(int idProducto) {
+        String sql = "SELECT id_producto FROM productos WHERE id_producto = ?";
+
+        return searchCoincidences(idProducto, sql);
+    }
+
+    private boolean searchCoincidences(int id, String sql) {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException ex) {
+            System.out.println("Error al comprobar si existe el empleado: " + ex.getMessage());
+            return false;
+        }
+    }
+
+    private void executeSelectOverProductsTable(String query) {
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+
+            while (resultSet.next()) {
+                System.out.println(
+                        resultSet.getInt(DBScheme.PRODUCT_ID) + " | " +
+                                resultSet.getString(DBScheme.PRODUCT_NAME) + " | " +
+                                resultSet.getString(DBScheme.PRODUCT_DESCRIPTION) + " | " +
+                                resultSet.getInt(DBScheme.PRODUCT_STOCK) + " | " +
+                                resultSet.getDouble(DBScheme.PRODUCT_PRICE)
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al ejecutar la consulta: " + e.getMessage());
+        }
     }
 
     @Override
     public void showAllProducts() {
+        String query = String.format("SELECT * FROM %s;", DBScheme.TAB_PRODUCTS_NAME);
+        executeSelectOverProductsTable(query);
 
     }
 
     @Override
     public void showAllFavouriteProducts() {
+        String query = "SELECT pf.id_producto_fav, p.* FROM productos_fav pf\n" +
+                "LEFT JOIN productos p ON pf.id_producto = p.id_producto;";
+
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+
+            while (resultSet.next()) {
+                System.out.println(
+                        resultSet.getInt(DBScheme.ID_PRODUCTS_FAV) + " | " +
+                                resultSet.getInt(DBScheme.PRODUCT_ID) + " | " +
+                                resultSet.getString(DBScheme.PRODUCT_NAME) + " | " +
+                                resultSet.getString(DBScheme.PRODUCT_DESCRIPTION) + " | " +
+                                resultSet.getInt(DBScheme.PRODUCT_STOCK) + " | " +
+                                resultSet.getDouble(DBScheme.PRODUCT_PRICE)
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al ejecutar la consulta: " + e.getMessage());
+        }
 
     }
 
     @Override
     public void showProductsUnder600() {
+        String query = "SELECT * FROM productos WHERE precio < 600;";
+
+        executeSelectOverProductsTable(query);
 
     }
 
+
     @Override
     public void insertProductsAbove1000() {
+        String query = "INSERT INTO productos_fav (id_producto) SELECT productos.id_producto \n" +
+                "FROM productos WHERE precio > 1000;";
+
+        try {
+            Statement statement = connection.createStatement();
+            int affectedRows = statement.executeUpdate(query);
+
+            System.out.println(affectedRows + " productos insertados como favoritos");
+        } catch (SQLException e) {
+            System.out.println("Error al ejecutar la consulta: " + e.getMessage());
+        }
 
     }
 }

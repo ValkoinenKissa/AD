@@ -1,13 +1,20 @@
 package dao;
 
+import model.Employee;
+import model.Order;
+
 public interface productDAO {
     void populateDatabase();
 
     boolean checkIfDbIsEmpty();
 
-    void addEmployee();
+    void addEmployee(Employee e);
 
-    void addOrder();
+    void addOrder(Order o);
+
+    boolean existsEmployee(int id);
+
+    boolean existsProduct(int idProducto);
 
     void showAllProducts();
 
@@ -16,5 +23,7 @@ public interface productDAO {
     void showProductsUnder600();
 
     void insertProductsAbove1000();
+
+
 
 }
