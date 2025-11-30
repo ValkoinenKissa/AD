@@ -87,9 +87,9 @@ public class ProductDAOImp implements productDAO {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(query);
 
-            if (resultSet.next()){
+            if (resultSet.next()) {
                 int count = resultSet.getInt("total");
-                if (count == 0){
+                if (count == 0) {
                     return true;
                 }
             }
@@ -154,32 +154,35 @@ public class ProductDAOImp implements productDAO {
         }
     }
 
+    //Utilizo do-while para no saltarme la primera fila
     private void executeSelectOverProductsTable(String query) {
-        try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
 
             if (!resultSet.next()) {
                 System.out.println("Esta tabla de la BD actualmente no tiene registros");
-            } else {
-                System.out.println(
-                        DBScheme.PRODUCT_ID  + " | " +
-                                DBScheme.PRODUCT_NAME  + " | " +
-                                DBScheme.PRODUCT_DESCRIPTION  + " | " +
-                                DBScheme.PRODUCT_STOCK  + " | " +
-                                DBScheme.PRODUCT_PRICE
-                );
-                System.out.println("---------------------------------------------------------------");
-                while (resultSet.next()) {
-                    System.out.println(
-                            resultSet.getInt(DBScheme.PRODUCT_ID) + " | " +
-                                    resultSet.getString(DBScheme.PRODUCT_NAME) + " | " +
-                                    resultSet.getString(DBScheme.PRODUCT_DESCRIPTION) + " | " +
-                                    resultSet.getInt(DBScheme.PRODUCT_STOCK) + " | " +
-                                    resultSet.getDouble(DBScheme.PRODUCT_PRICE)
-                    );
-                }
+                return;
             }
+
+            System.out.println(
+                    DBScheme.PRODUCT_ID + " | " +
+                            DBScheme.PRODUCT_NAME + " | " +
+                            DBScheme.PRODUCT_DESCRIPTION + " | " +
+                            DBScheme.PRODUCT_STOCK + " | " +
+                            DBScheme.PRODUCT_PRICE
+            );
+            System.out.println("---------------------------------------------------------------");
+
+            // Imprimir primera fila ya posicionada y continuar
+            do {
+                System.out.println(
+                        resultSet.getInt(DBScheme.PRODUCT_ID) + " | " +
+                                resultSet.getString(DBScheme.PRODUCT_NAME) + " | " +
+                                resultSet.getString(DBScheme.PRODUCT_DESCRIPTION) + " | " +
+                                resultSet.getInt(DBScheme.PRODUCT_STOCK) + " | " +
+                                resultSet.getDouble(DBScheme.PRODUCT_PRICE)
+                );
+            } while (resultSet.next());
 
         } catch (SQLException e) {
             System.out.println("Error al ejecutar la consulta: " + e.getMessage());
@@ -193,38 +196,43 @@ public class ProductDAOImp implements productDAO {
 
     }
 
+
     @Override
     public void showAllFavouriteProducts() {
-        String query = "SELECT pf.id_producto_fav, p.* FROM productos_fav pf\n" +
+        String query = "SELECT pf.id_producto_fav, p.id_producto, p.nombre_producto, p.descripcion_producto, p.cantidad, p.precio " +
+                "FROM productos_fav pf " +
                 "LEFT JOIN productos p ON pf.id_producto = p.id_producto;";
-
-        try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
+        //Try-with resources
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
 
             if (!resultSet.next()) {
                 System.out.println("Esta tabla de la BD actualmente no tiene registros");
-
-            } else {
-                System.out.println(
-                        DBScheme.PRODUCT_ID  + " | " +
-                                DBScheme.PRODUCT_NAME  + " | " +
-                                DBScheme.PRODUCT_DESCRIPTION  + " | " +
-                                DBScheme.PRODUCT_STOCK  + " | " +
-                                DBScheme.PRODUCT_PRICE
-                );
-                System.out.println("---------------------------------------------------------------");
-                while (resultSet.next()) {
-                    System.out.println(
-                            resultSet.getInt(DBScheme.ID_PRODUCTS_FAV) + " | " +
-                                    resultSet.getInt(DBScheme.PRODUCT_ID) + " | " +
-                                    resultSet.getString(DBScheme.PRODUCT_NAME) + " | " +
-                                    resultSet.getString(DBScheme.PRODUCT_DESCRIPTION) + " | " +
-                                    resultSet.getInt(DBScheme.PRODUCT_STOCK) + " | " +
-                                    resultSet.getDouble(DBScheme.PRODUCT_PRICE)
-                    );
-                }
+                return;
             }
+
+            System.out.println(
+                    DBScheme.ID_PRODUCTS_FAV + " | " +
+                            DBScheme.PRODUCT_ID + " | " +
+                            DBScheme.PRODUCT_NAME + " | " +
+                            DBScheme.PRODUCT_DESCRIPTION + " | " +
+                            DBScheme.PRODUCT_STOCK + " | " +
+                            DBScheme.PRODUCT_PRICE
+            );
+            System.out.println("----------------------------------------------------------------------------");
+
+            //Utilizo do-while para no saltarme la primera fila
+            do {
+                System.out.println(
+                        resultSet.getInt(DBScheme.ID_PRODUCTS_FAV) + " | " +
+                                resultSet.getInt(DBScheme.PRODUCT_ID) + " | " +
+                                resultSet.getString(DBScheme.PRODUCT_NAME) + " | " +
+                                resultSet.getString(DBScheme.PRODUCT_DESCRIPTION) + " | " +
+                                resultSet.getInt(DBScheme.PRODUCT_STOCK) + " | " +
+                                resultSet.getDouble(DBScheme.PRODUCT_PRICE)
+                );
+            } while (resultSet.next());
+
         } catch (SQLException e) {
             System.out.println("Error al ejecutar la consulta: " + e.getMessage());
         }
@@ -234,27 +242,21 @@ public class ProductDAOImp implements productDAO {
     @Override
     public void showProductsUnder600() {
         String query = "SELECT * FROM productos WHERE precio < 600;";
-
         executeSelectOverProductsTable(query);
-
     }
-
 
     @Override
     public void insertProductsAbove1000() {
-        String query = "INSERT INTO productos_fav (id_producto) SELECT productos.id_producto \n" +
-                "FROM productos WHERE precio > 1000;";
+        String query = "INSERT INTO productos_fav (id_producto) " +
+                "SELECT productos.id_producto FROM productos WHERE precio > 1000;";
 
-        try {
-            Statement statement = connection.createStatement();
+        try (Statement statement = connection.createStatement()) {
             int affectedRows = statement.executeUpdate(query);
 
             if (affectedRows == 0) {
-                System.out.println("Error al ejecutar la consulta, " +
-                        "es probable que la tabla productos no tenga resgistros");
+                System.out.println("Error al ejecutar la consulta, es probable que la tabla productos no tenga registros");
             } else {
                 System.out.println(affectedRows + " productos insertados como favoritos");
-
             }
 
         } catch (SQLException e) {
